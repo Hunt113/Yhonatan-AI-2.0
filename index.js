@@ -6,7 +6,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// Initializes using the GEMINI_API_KEY environment variable from Render
+// Checks to make sure Render has the key before starting
+if (!process.env.GEMINI_API_KEY) {
+    console.warn("WARNING: GEMINI_API_KEY environment variable is missing!");
+}
+
 const ai = new GoogleGenAI();
 
 app.get('/', (req, res) => {
