@@ -14,7 +14,7 @@ try {
     GoogleGenerativeAI = aiModule.GoogleGenerativeAI;
     
     if (process.env.GEMINI_API_KEY) {
-        ai = new GoogleGenerativeAI(process.env.AIzaSyBYYoU9O-Vz6KLfGWL4s-n63rk5TWSYyqI);
+        ai = new GoogleGenerativeAI(process.env.AIzaSyBYYoU9OVz6KLfGWL4sn63rk5TWSYyqI);
     } else {
         initError = "מפתח ה-API (GEMINI_API_KEY) חסר בהגדרות ה-Environment של Render.";
     }
