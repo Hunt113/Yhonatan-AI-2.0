@@ -1,20 +1,20 @@
-import express from 'express';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+const express = require('express');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// אתחול בטוח כדי למנוע קריסת שרת אם המפתח חסר ב-Render
+// אתחול בטוח ללא קריסות
 let ai = null;
 if (process.env.GEMINI_API_KEY) {
     ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
 } else {
-    console.error("קריטי: משתנה הסביבה GEMINI_API_KEY לא הוגדר בשרת של Render!");
+    console.error("קריטי: משתנה הסביבה GEMINI_API_KEY לא הוגדר ב-Render!");
 }
 
-// דף הבית בממשק מסך מלא
+// דף הבית
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -183,7 +183,6 @@ app.get('/', (req, res) => {
             </style>
         </head>
         <body>
-            
             <div class="chat-header">
                 <div class="brand-title">Yhonatan AI</div>
                 <button class="new-chat-btn" onclick="startNewChat()">צ'אט חדש 🔄</button>
@@ -278,7 +277,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// יצירת פונקציית הפוסט עם הגנות מלאות מקריסה
+// פוסט ראשי
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
 
@@ -286,9 +285,8 @@ app.post('/chat', async (req, res) => {
         return res.status(400).json({ error: 'Please provide a message.' });
     }
 
-    // בדיקה אם ה-SDK לא אותחל עקב מפתח חסר
     if (!ai) {
-        return res.json({ reply: "שגיאת מערכת: מפתח ה-API (GEMINI_API_KEY) לא הוגדר כראוי בהגדרות של Render. אנא הוסף אותו בטאב Environment." });
+        return res.json({ reply: "שגיאת מערכת: מפתח ה-API (GEMINI_API_KEY) חסר בהגדרות ה-Environment של Render." });
     }
 
     try {
