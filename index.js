@@ -7,7 +7,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // אתחול ה-AI עם המפתח המאובטח מ-Render
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.AIzaSyBn90uJndRV61K7gBpelVj7tUuBdUswUV8 });
 
 // דף הבית בממשק מסך מלא לבן עם כפתורים שחורים
 app.get('/', (req, res) => {
