@@ -6,10 +6,15 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// אתחול ה-AI בצורה הרשמית והמאובטחת
-const ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
+// אתחול בטוח כדי למנוע קריסת שרת אם המפתח חסר ב-Render
+let ai = null;
+if (process.env.GEMINI_API_KEY) {
+    ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
+} else {
+    console.error("קריטי: משתנה הסביבה GEMINI_API_KEY לא הוגדר בשרת של Render!");
+}
 
-// ממשק הצ'אט במסך מלא
+// דף הבית בממשק מסך מלא
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -187,7 +192,7 @@ app.get('/', (req, res) => {
             <div class="chat-messages" id="chatBox">
                 <div class="message ai-message">
                     <span class="msg-author">Yhonatan AI</span>
-                    שלום! אני Yhonatan AI. אני מוכן לענות על כל שאלה ובכל שפה, עם תשובות מלאות ומדויקות. איך אני יכול לעזור לך היום? 💻
+                    שלום! אני Yhonatan AI. אני מוכן לענות על כל שאלה ובכל שפה. איך אני יכול לעזור לך היום? 💻
                 </div>
             </div>
 
@@ -262,7 +267,7 @@ app.get('/', (req, res) => {
                     chatBox.innerHTML = \`
                         <div class="message ai-message">
                             <span class="msg-author">Yhonatan AI</span>
-                            התחלת צ'אט חדש! מוכן לכל שאלה, ללא הגבלות ובכל שפה. 💻
+                            התחלת צ'אט חדש! מוכן לכל שאלה. 💻
                         </div>
                     \`;
                     document.getElementById('userInput').value = '';
@@ -273,12 +278,17 @@ app.get('/', (req, res) => {
     `);
 });
 
-// נקודת הקצה שמטפלת בהודעות בצורה חסינה
+// יצירת פונקציית הפוסט עם הגנות מלאות מקריסה
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
 
     if (!userMessage) {
         return res.status(400).json({ error: 'Please provide a message.' });
+    }
+
+    // בדיקה אם ה-SDK לא אותחל עקב מפתח חסר
+    if (!ai) {
+        return res.json({ reply: "שגיאת מערכת: מפתח ה-API (GEMINI_API_KEY) לא הוגדר כראוי בהגדרות של Render. אנא הוסף אותו בטאב Environment." });
     }
 
     try {
@@ -302,10 +312,8 @@ app.post('/chat', async (req, res) => {
 
     } catch (error) {
         console.error("Error detected:", error);
-
         const errMsg = error.message ? error.message.toLowerCase() : '';
         
-        // תפיסת שגיאת עומס והצגת הודעה יפה במקום קריסה
         if (errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('exhausted')) {
             return res.json({ reply: "נראה שהגענו למגבלת הקצב של השרת החינמי של גוגל! 🚦 אנא המתן כ-10 שניות ונסה לשלוח את ההודעה שוב." });
         }
