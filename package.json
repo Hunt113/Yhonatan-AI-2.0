@@ -1,13 +1,17 @@
 {
   "name": "yhonatan-ai",
   "version": "1.0.0",
-  "type": "module",
+  "description": "Yhonatan AI Web Interface",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/genai": "latest",
+    "@google/genai": "^0.1.1",
     "express": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
