@@ -7,7 +7,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // אתחול ה-AI בצורה הרשמית והמאובטחת
-const ai = new GoogleGenerativeAI(process.env.AIzaSyBn90uJndRV61K7gBpelVj7tUuBdUswUV8);
+const ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
 
 // ממשק הצ'אט במסך מלא
 app.get('/', (req, res) => {
