@@ -1,20 +1,29 @@
 const express = require('express');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
 const app = express();
-app.use(express.json());
 
+app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
-// אתחול בטוח ללא קריסות
+// ניסיון טעינה בטוח של ה-SDK כדי למנוע קריסות שרת מוחלטות
+let GoogleGenerativeAI = null;
 let ai = null;
-if (process.env.GEMINI_API_KEY) {
-    ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
-} else {
-    console.error("קריטי: משתנה הסביבה GEMINI_API_KEY לא הוגדר ב-Render!");
+let initError = null;
+
+try {
+    const aiModule = require('@google/generative-ai');
+    GoogleGenerativeAI = aiModule.GoogleGenerativeAI;
+    
+    if (process.env.GEMINI_API_KEY) {
+        ai = new GoogleGenerativeAI(process.env.AIzaSyCxTjgo-ZqdwM7aogMrHky9m_LvKaYNyZ4);
+    } else {
+        initError = "מפתח ה-API (GEMINI_API_KEY) חסר בהגדרות ה-Environment של Render.";
+    }
+} catch (e) {
+    console.error("שגיאה בטעינת ה-SDK של גוגל:", e.message);
+    initError = "נכשלה טעינת ספריית ה-AI בשרת: " + e.message;
 }
 
-// דף הבית
+// דף הבית בממשק מלא
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -277,7 +286,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// פוסט ראשי
+// נקודת קצה של הצ'אט
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
 
@@ -285,8 +294,9 @@ app.post('/chat', async (req, res) => {
         return res.status(400).json({ error: 'Please provide a message.' });
     }
 
-    if (!ai) {
-        return res.json({ reply: "שגיאת מערכת: מפתח ה-API (GEMINI_API_KEY) חסר בהגדרות ה-Environment של Render." });
+    // החזרת שגיאה מסודרת לגולש במקום קריסת שרת מוחלטת
+    if (initError || !ai) {
+        return res.json({ reply: "שגיאת מערכת: " + (initError || "ה-SDK של ה-AI לא אותחל.") });
     }
 
     try {
@@ -309,7 +319,7 @@ app.post('/chat', async (req, res) => {
         res.json({ reply: response.text() });
 
     } catch (error) {
-        console.error("Error detected:", error);
+        console.error("Error during content generation:", error);
         const errMsg = error.message ? error.message.toLowerCase() : '';
         
         if (errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('exhausted')) {
@@ -321,5 +331,5 @@ app.post('/chat', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Yhonatan AI listening on port ${PORT}`);
+    console.log(`Yhonatan AI running successfully on port ${PORT}`);
 });
