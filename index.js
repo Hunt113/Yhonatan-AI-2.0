@@ -7,9 +7,9 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // אתחול ה-AI עם המפתח המאובטח מ-Render
-const ai = new GoogleGenAI({ apiKey: process.env.AIzaSyBn90uJndRV61K7gBpelVj7tUuBdUswUV8 });
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// דף הבית המעוצב - ממשק Full Screen מלא בעברית
+// דף הבית בממשק מסך מלא לבן עם כפתורים שחורים
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -24,8 +24,8 @@ app.get('/', (req, res) => {
                 }
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background-color: #0b0f19;
-                    color: #ffffff;
+                    background-color: #ffffff;
+                    color: #000000;
                     margin: 0;
                     padding: 0;
                     display: flex;
@@ -35,23 +35,23 @@ app.get('/', (req, res) => {
                     overflow: hidden;
                 }
                 .chat-header {
-                    background: #111827;
+                    background: #ffffff;
                     padding: 15px 25px;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    border-bottom: 1px solid #1f2937;
+                    border-bottom: 2px solid #e5e7eb;
                     height: 70px;
                 }
                 .brand-title {
                     font-size: 1.5rem;
                     font-weight: bold;
-                    color: #10b981;
+                    color: #000000;
                     margin: 0;
                 }
                 .new-chat-btn {
-                    background: #ef4444;
-                    color: white;
+                    background: #000000;
+                    color: #ffffff;
                     border: none;
                     padding: 10px 20px;
                     border-radius: 6px;
@@ -61,7 +61,7 @@ app.get('/', (req, res) => {
                     transition: background 0.2s;
                 }
                 .new-chat-btn:hover {
-                    background: #dc2626;
+                    background: #1f2937;
                 }
                 .chat-messages {
                     flex: 1;
@@ -70,7 +70,7 @@ app.get('/', (req, res) => {
                     display: flex;
                     flex-direction: column;
                     gap: 16px;
-                    background-color: #0b0f19;
+                    background-color: #ffffff;
                     width: 100%;
                 }
                 .message {
@@ -82,22 +82,24 @@ app.get('/', (req, res) => {
                     word-wrap: break-word;
                 }
                 .user-message {
-                    background: #2563eb;
+                    background: #f3f4f6;
+                    color: #000000;
                     align-self: flex-start;
+                    border: 1px solid #e5e7eb;
                     border-top-right-radius: 0;
                 }
                 .ai-message {
-                    background: #1f2937;
+                    background: #000000;
+                    color: #ffffff;
                     align-self: flex-end;
-                    border-right: 4px solid #10b981;
                     border-top-left-radius: 0;
                 }
                 .chat-input-area {
                     display: flex;
                     padding: 20px 30px;
-                    background: #111827;
+                    background: #ffffff;
                     gap: 15px;
-                    border-top: 1px solid #1f2937;
+                    border-top: 2px solid #e5e7eb;
                     height: 90px;
                     align-items: center;
                 }
@@ -105,19 +107,19 @@ app.get('/', (req, res) => {
                     flex: 1;
                     padding: 14px;
                     border-radius: 8px;
-                    border: 1px solid #374151;
-                    background: #1f2937;
-                    color: white;
+                    border: 2px solid #e5e7eb;
+                    background: #ffffff;
+                    color: #000000;
                     font-size: 1.05rem;
                     outline: none;
                     transition: border-color 0.2s;
                 }
                 input:focus { 
-                    border-color: #10b981; 
+                    border-color: #000000; 
                 }
                 .send-btn {
-                    background: #10b981;
-                    color: white;
+                    background: #000000;
+                    color: #ffffff;
                     border: none;
                     padding: 0 30px;
                     height: 50px;
@@ -128,7 +130,7 @@ app.get('/', (req, res) => {
                     transition: background 0.2s;
                 }
                 .send-btn:hover { 
-                    background: #059669; 
+                    background: #1f2937; 
                 }
             </style>
         </head>
@@ -140,7 +142,7 @@ app.get('/', (req, res) => {
             </div>
 
             <div class="chat-messages" id="chatBox">
-                <div class="message ai-message">שלום! אני Yhonatan AI. איך אני יכול לעזור לך בפיתוח היום? 💻</div>
+                <div class="message ai-message">שלום! אני Yhonatan AI. איך אני יכול לעזור לך היום? 💻</div>
             </div>
 
             <div class="chat-input-area">
@@ -173,15 +175,14 @@ app.get('/', (req, res) => {
                         // הצגת תגובת ה-AI
                         chatBox.innerHTML += \`<div class="message ai-message">\${data.reply}</div>\`;
                     } catch(e) {
-                        chatBox.innerHTML += \`<div class="message ai-message" style="color: #ef4444;">שגיאה בחיבור ל-AI.</div>\`;
+                        chatBox.innerHTML += \`<div class="message ai-message" style="background: #ef4444; color: white;">שגיאה בחיבור ל-AI.</div>\`;
                     }
                     chatBox.scrollTop = chatBox.scrollHeight;
                 }
 
                 function startNewChat() {
                     const chatBox = document.getElementById('chatBox');
-                    // איפוס חלון הצ'אט להודעת הפתיחה המקורית
-                    chatBox.innerHTML = \`<div class="message ai-message">התחלת צ'אט חדש! אני Yhonatan AI, מוכן לפקודתך. 💻</div>\`;
+                    chatBox.innerHTML = \`<div class="message ai-message">התחלת צ'אט חדש! אני Yhonatan AI, מוכן לעזור. 💻</div>\`;
                     document.getElementById('userInput').value = '';
                 }
             </script>
@@ -190,7 +191,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// פונקציית הפוסט שמנהלת את הדיאלוג
+// פונקציית הפוסט שמנהלת את הדיאלוג הנקי
 app.post('/chat', async (req, res) => {
     const userMessage = req.body.message;
 
@@ -203,7 +204,7 @@ app.post('/chat', async (req, res) => {
             model: 'gemini-2.5-flash',
             contents: userMessage,
             config: {
-                systemInstruction: "אתה עוזר בינה מלאכותית מתקדם בשם 'Yhonatan AI'. אתה מומחה פיתוח ברמה הגבוהה ביותר (במיוחד ב-Node.js, בוטים לדיסקורד, ומשחקי רובלוקס). עליך לדבר אך ורק בעברית שוטפת, מקצועית וברורה, עם ביטחון רב. תמיד תתמוך ביוצר שלך (Yhonatan Akiva) ובצוות הפיתוח שלו. שמור על קוד נקי, יעיל וממוקד, ותן תשובות קצרות, קולעות ולעניין בלי למרוח זמן. מדי פעם אתה יכול להשתמש בסלוגן 'TDK' כדי להראות נאמנות.",
+                systemInstruction: "אתה עוזר בינה מלאכותית מתקדם בשם 'Yhonatan AI'. עליך לדבר אך ורק בעברית שוטפת, מקצועית וברורה. תן תשובות קצרות, מדויקות וישירות לעניין בלי למרוח זמן.",
             }
         });
 
